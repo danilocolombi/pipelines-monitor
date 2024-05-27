@@ -1,0 +1,22 @@
+{
+    "contributions": [
+        {
+            "id": "total-business-value-widget",
+            "type": "ms.vss-dashboards-web.widget",
+            "targets": ["ms.vss-dashboards-web.widget-catalog", ".business-value-widget.config"],
+            "properties": {
+                "name": "Total Business Value",
+                "description": "Shows the total business value of the epics in the team project",
+                "catalogIconUrl": "logo.png",
+                "uri": "dist/BusinessValueWidget/BusinessValueWidget.html",
+                "isNameConfigurable": true,
+                "supportedSizes": [{ "rowSpan": 1, "columnSpan": 1 }],
+                "supportedScopes": ["project_team"]
+            }
+        }
+    ],
+    "scopes": [
+        "vso.work",
+        "vso.profile"
+    ]
+}

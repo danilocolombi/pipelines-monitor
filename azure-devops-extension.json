@@ -1,0 +1,38 @@
+{
+  "manifestVersion": 1,
+  "id": "my-first",
+  "publisher": "danilocolombi",
+  "version": "1.0.150",
+  "name": "my-first",
+  "description": "Azure DevOps Extension",
+  "categories": [
+    "Azure Repos",
+    "Azure Boards",
+    "Azure Pipelines",
+    "Azure Test Plans",
+    "Azure Artifacts"
+  ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "icons": {
+    "default": "logo.png"
+  },
+  "content": {
+    "details": {
+      "path": "overview.md"
+    }
+  },
+  "files": [
+    {
+      "path": "static",
+      "addressable": true
+    },
+    {
+      "path": "dist",
+      "addressable": true
+    }
+  ]
+}

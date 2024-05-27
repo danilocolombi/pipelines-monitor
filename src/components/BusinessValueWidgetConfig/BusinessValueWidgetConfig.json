@@ -1,0 +1,14 @@
+{
+  "contributions": [
+    {
+      "id": "business-value-widget.config",
+      "type": "ms.vss-dashboards-web.widget-configuration",
+      "targets": ["ms.vss-dashboards-web.widget-configuration"],
+      "properties": {
+        "name": "Business Value Widget Config",
+        "uri": "dist/BusinessValueWidgetConfig/BusinessValueWidgetConfig.html"
+      }
+    }
+  ],
+  "scopes": ["vso.work", "vso.profile"]
+}
