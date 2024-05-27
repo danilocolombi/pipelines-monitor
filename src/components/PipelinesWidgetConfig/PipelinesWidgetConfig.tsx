@@ -6,13 +6,16 @@ import { showRootComponent } from "../../Common";
 
 interface IPipelinesWidgetConfigState {
 
+} 
+
+interface IPipelineWidgetSettings {
 }
 
 class PipelinesWidgetConfig
   extends React.Component<{}, IPipelinesWidgetConfigState>
   implements Dashboard.IWidgetConfiguration {
 
-  private settings: IBusinessValueWidgetSettings = {} as IBusinessValueWidgetSettings;
+  private settings: IPipelineWidgetSettings = {} as IPipelineWidgetSettings;
   private widgetConfigurationContext?: Dashboard.IWidgetConfigurationContext;
 
   componentDidMount() {
@@ -47,7 +50,7 @@ class PipelinesWidgetConfig
   private async setStateFromWidgetSettings(
     widgetSettings: Dashboard.WidgetSettings
   ) {
-    const deserialized: IBusinessValueWidgetSettings | null = JSON.parse(
+    const deserialized: IPipelineWidgetSettings | null = JSON.parse(
       widgetSettings.customSettings.data
     );
 
@@ -66,7 +69,7 @@ class PipelinesWidgetConfig
   }
 
   private serializeWidgetSettings(
-    settings: IBusinessValueWidgetSettings
+    settings: IPipelineWidgetSettings
   ): Dashboard.CustomSettings {
     return {
       data: JSON.stringify(settings),
