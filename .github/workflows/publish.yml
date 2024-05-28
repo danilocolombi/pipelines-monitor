@@ -1,0 +1,40 @@
+name: 'Publish'
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Package
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install tools used for deployment
+      run: |
+        npm install -g tfx-cli node-jq
+
+    - name: Prepare vss-extension-dev.json
+      run: |
+        cp vss-extension-dev.json.template vss-extension-dev.json
+
+        scripts/update_ext_manifest.sh \
+          "vss-extension-dev.json" \
+          "enginpolat" \
+          "retrospective-vsts-extension-dev" \
+          "${{ secrets.AZURE_DEVOPS_TOKEN }}"
+
+    - name: Prepare extension package
+      run: |
+        npm install
+        npm run build
+
+    - name: Publish extension
+      run: >
+        tfx extension publish
+        --manifest-globs azure-devops-extension.json src/components/**/*.json
+        --token "${{ secrets.AZURE_DEVOPS_TOKEN }}"
