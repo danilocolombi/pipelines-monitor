@@ -1,16 +1,13 @@
 {
   "manifestVersion": 1,
-  "id": "my-first",
+  "id": "pipelines-runs-analyzer-widget",
   "publisher": "danilocolombi",
   "version": "1.0.155",
-  "name": "my-first",
+  "name": "Pipelines Runs Analyzer Widget",
   "description": "Azure DevOps Extension",
   "categories": [
-    "Azure Repos",
     "Azure Boards",
-    "Azure Pipelines",
-    "Azure Test Plans",
-    "Azure Artifacts"
+    "Azure Pipelines"
   ],
   "targets": [
     {
@@ -26,10 +23,6 @@
     }
   },
   "files": [
-    {
-      "path": "static",
-      "addressable": true
-    },
     {
       "path": "dist",
       "addressable": true
