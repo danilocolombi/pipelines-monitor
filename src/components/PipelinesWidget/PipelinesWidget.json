@@ -4,7 +4,8 @@
       "id": "pipelines-widget",
       "type": "ms.vss-dashboards-web.widget",
       "targets": [
-        "ms.vss-dashboards-web.widget-catalog"
+        "ms.vss-dashboards-web.widget-catalog",
+        ".pipelines-widget.config"
       ],
       "properties": {
         "name": "Pipelines Overview Widget",
@@ -13,7 +14,7 @@
         "uri": "dist/PipelinesWidget/PipelinesWidget.html",
         "isNameConfigurable": true,
         "supportedSizes": [
-          { "rowSpan": 3, "columnSpan": 4 },
+          { "rowSpan": 3, "columnSpan": 3 },
           { "rowSpan": 4, "columnSpan": 4 }
         ],
         "supportedScopes": ["project_team"]

@@ -9,10 +9,16 @@ import { ObservableValue } from "azure-devops-ui/Core/Observable";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { Observer } from "azure-devops-ui/Observer";
 import { PipelineOverview, getPipelines } from "../../services/pipelines";
+import { IPipelineWidgetSettings } from "../PipelinesWidgetConfig/IPipelineWidgetSettings";
 
 interface IPipelinesWidgetState {
   title: string;
   pipelines: PipelineOverview[];
+  showRuns: boolean;
+  showSucceeded: boolean;
+  showFailed: boolean;
+  showAverage: boolean;
+  showSkipped: boolean;
 }
 
 export interface IPipelineTableItem extends ISimpleTableCell {
@@ -34,90 +40,13 @@ class PipelinesWidget
     });
   }
 
-  private readonly numericSortProps = {
-    ariaLabelAscending: "Sorted low to high",
-    ariaLabelDescending: "Sorted high to low",
-  };
-
-  private readonly columns: ITableColumn<IPipelineTableItem>[] = [
-    {
-      id: "name",
-      name: "Name",
-      renderCell: renderSimpleCell,
-      readonly: true,
-      width: -35,
-      sortProps: {
-        ariaLabelAscending: "Sorted A to Z",
-        ariaLabelDescending: "Sorted Z to A",
-      },
-    },
-    {
-      id: "runs",
-      name: "Runs",
-      renderCell: renderSimpleCell,
-      readonly: true,
-      width: -12,
-      sortProps: { ...this.numericSortProps }
-    },
-    {
-      id: "succeeded",
-      name: "Succeeded",
-      renderCell: renderSimpleCell,
-      readonly: true,
-      width: -14,
-      sortProps: { ...this.numericSortProps }
-    },
-    {
-      id: "failed",
-      name: "Failed",
-      renderCell: renderSimpleCell,
-      readonly: true,
-      width: -12,
-      sortProps: { ...this.numericSortProps }
-    },
-    {
-      id: "skipped",
-      name: "Skipped",
-      renderCell: renderSimpleCell,
-      readonly: true,
-      width: -12,
-      sortProps: { ...this.numericSortProps }
-    },
-    {
-      id: "avgDuration",
-      name: "Avg Duration",
-      renderCell: renderSimpleCell,
-      readonly: true,
-      width: -15
-    },
-  ];
-
-  private readonly sortFunctions = [
-    (item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-      return item1.name.localeCompare(item2.name);
-    },
-    (item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-      return item1.runs - item2.runs;
-    },
-    (item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-      return item1.succeeded - item2.succeeded;
-    },
-    (item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-      return item1.failed - item2.failed;
-    },
-    (item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-      return item2.skipped - item1.skipped;
-    },
-    null,
-  ];
-
   render(): JSX.Element {
 
     if (!this.state) {
       return <div></div>;
     }
 
-    const { pipelines } = this.state;
+    const { pipelines, showRuns, showSucceeded, showFailed, showAverage, showSkipped } = this.state;
     const tableItems = pipelines.map(({ name, stats }) => {
       return {
         runs: stats.runs,
@@ -133,14 +62,112 @@ class PipelinesWidget
       new ArrayItemProvider(tableItems)
     );
 
+    const numericSortProps = {
+      ariaLabelAscending: "Sorted low to high",
+      ariaLabelDescending: "Sorted high to low",
+    };
+
+    let columns: ITableColumn<IPipelineTableItem>[] = [
+      {
+        id: "name",
+        name: "Name",
+        renderCell: renderSimpleCell,
+        readonly: true,
+        width: -35,
+        sortProps: {
+          ariaLabelAscending: "Sorted A to Z",
+          ariaLabelDescending: "Sorted Z to A",
+        },
+      },
+    ];
+
+    let sortFunctions = [
+      (item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
+        return item1.name.localeCompare(item2.name);
+      }
+    ];
+
+    if (showRuns) {
+      columns.push({
+        id: "runs",
+        name: "Runs",
+        renderCell: renderSimpleCell,
+        readonly: true,
+        width: -12,
+        sortProps: { ...numericSortProps }
+      });
+
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
+        return item1.runs - item2.runs;
+      });
+    }
+
+    if (showSucceeded) {
+      columns.push({
+        id: "succeeded",
+        name: "Succeeded",
+        renderCell: renderSimpleCell,
+        readonly: true,
+        width: -14,
+        sortProps: { ...numericSortProps }
+      });
+
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
+        return item2.succeeded - item1.succeeded;
+      });
+    }
+
+    if (showFailed) {
+      columns.push({
+        id: "failed",
+        name: "Failed",
+        renderCell: renderSimpleCell,
+        readonly: true,
+        width: -12,
+        sortProps: { ...numericSortProps }
+      });
+
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
+        return item2.failed - item1.failed;
+      });
+    }
+
+    if (showSkipped) {
+      columns.push({
+        id: "skipped",
+        name: "Skipped",
+        renderCell: renderSimpleCell,
+        readonly: true,
+        width: -12,
+        sortProps: { ...numericSortProps }
+      });
+
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
+        return item2.skipped - item1.skipped;
+      });
+    }
+
+    if (showAverage) {
+      columns.push({
+        id: "avgDuration",
+        name: "Avg Duration",
+        renderCell: renderSimpleCell,
+        readonly: true,
+        width: -15
+      });
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
+        return item1.name.localeCompare(item2.name);
+      });
+    }
+
     const sortingBehavior = new ColumnSorting<IPipelineTableItem>(
       (columnIndex: number, proposedSortOrder: SortOrder) => {
         itemProvider.value = new ArrayItemProvider(
           sortItems(
             columnIndex,
             proposedSortOrder,
-            this.sortFunctions,
-            this.columns,
+            sortFunctions,
+            columns,
             tableItems
           )
         );
@@ -153,7 +180,7 @@ class PipelinesWidget
           {(observableProps: { itemProvider: ArrayItemProvider<IPipelineTableItem> }) => (
             <Table<IPipelineTableItem>
               ariaLabel="Pipelines Table"
-              columns={this.columns}
+              columns={columns}
               behaviors={[sortingBehavior]}
               itemProvider={observableProps.itemProvider}
               role="table"
@@ -214,11 +241,24 @@ class PipelinesWidget
     widgetSettings: Dashboard.WidgetSettings
   ) {
     try {
+      const deserialized: IPipelineWidgetSettings | null = JSON.parse(
+        widgetSettings.customSettings.data
+      );
+
+      if (!deserialized) {
+        return;
+      }
+
       const pipelines = await getPipelines();
 
       this.setState({
         title: widgetSettings.name,
-        pipelines
+        pipelines,
+        showRuns: deserialized.showRuns,
+        showSucceeded: deserialized.showSucceeded,
+        showFailed: deserialized.showFailed,
+        showSkipped: deserialized.showSkipped,
+        showAverage: deserialized.showAverage,
       });
     } catch (e) {
       console.log("Error: ", e);
