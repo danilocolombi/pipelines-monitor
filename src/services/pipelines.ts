@@ -89,6 +89,6 @@ function getPipelineStats(
     succeeded,
     failed,
     skipped,
-    avgDuration: Number.isNaN(avgDuration) ? 0 : avgDuration / runs.length,
+    avgDuration: Number.isNaN(avgDuration) ? 0 : avgDuration / runCount,
   };
 }
