@@ -8,14 +8,14 @@
         ".pipelines-widget.config"
       ],
       "properties": {
-        "name": "Pipelines Overview Widget",
+        "name": "Pipelines Overview",
         "description": "Shows pipelines stats of team project",
-        "catalogIconUrl": "logo.png",
+        "catalogIconUrl": "static/logo.png",
         "uri": "dist/PipelinesWidget/PipelinesWidget.html",
         "isNameConfigurable": true,
         "supportedSizes": [
-          { "rowSpan": 3, "columnSpan": 3 },
-          { "rowSpan": 4, "columnSpan": 4 }
+          { "rowSpan": 4, "columnSpan": 4 },
+          { "rowSpan": 3, "columnSpan": 3 }
         ],
         "supportedScopes": ["project_team"]
       }

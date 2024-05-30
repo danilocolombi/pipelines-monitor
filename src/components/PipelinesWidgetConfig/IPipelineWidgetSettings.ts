@@ -4,4 +4,5 @@ export interface IPipelineWidgetSettings {
   showFailed: boolean;
   showAverage: boolean;
   showSkipped: boolean;
+  showAsPercentage: boolean;
 }

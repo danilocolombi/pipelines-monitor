@@ -2,11 +2,12 @@ import "./PipelinesWidgetConfig.scss";
 import * as Dashboard from "azure-devops-extension-api/Dashboard";
 import React from "react";
 import * as SDK from "azure-devops-extension-sdk";
-import { Toggle } from "azure-devops-ui/Toggle";
 import { showRootComponent } from "../../Common";
 import { IPipelineWidgetSettings } from "./IPipelineWidgetSettings";
+import FormToggle from "../FormToggle/FormToggle";
 
 interface IPipelinesWidgetConfigState {
+  showAsPercentage: boolean;
   showRuns: boolean;
   showSucceeded: boolean;
   showFailed: boolean;
@@ -34,58 +35,45 @@ class PipelinesWidgetConfig
       return <div></div>;
     }
 
+    const { showAsPercentage, showRuns, showSucceeded, showFailed, showSkipped, showAverage } = this.state;
+
     return (
       <div className="content">
-        <div className="form-row">
-          <div className="body-m width-75">
-            Show Runs Column
-          </div>
-          <Toggle
-            checked={this.state.showRuns}
-            onChange={(_, value) => this.onChange("showRuns", value)}
-            id="showRuns"
-          />
-        </div>
-        <div className="form-row">
-          <div className="body-m width-75">
-            Show Succeded Column
-          </div>
-          <Toggle
-            checked={this.state.showSucceeded}
-            onChange={(_, value) => this.onChange("showSucceeded", value)}
-            id="showSucceeded"
-          />
-        </div>
-        <div className="form-row">
-          <div className="body-m width-75">
-            Show Failed Column
-          </div>
-          <Toggle
-            checked={this.state.showFailed}
-            onChange={(_, value) => this.onChange("showFailed", value)}
-            id="showFailed"
-          />
-        </div>
-        <div className="form-row">
-          <div className="body-m width-75">
-            Show Skipped Column
-          </div>
-          <Toggle
-            checked={this.state.showSkipped}
-            onChange={(_, value) => this.onChange("showSkipped", value)}
-            id="showSkipped"
-          />
-        </div>
-        <div className="form-row">
-          <div className="body-m width-75">
-            Show Average Duration Column
-          </div>
-          <Toggle
-            checked={this.state.showAverage}
-            onChange={(_, value) => this.onChange("showAverage", value)}
-            id="showSkipped"
-          />
-        </div>
+        <FormToggle
+          label="Show as Percentage"
+          checked={showAsPercentage}
+          onChange={(value) => this.onChange("showAsPercentage", value)}
+          id="showAsPercentage"
+        />
+        <FormToggle
+          label="Show Runs Column"
+          checked={showRuns}
+          onChange={(value) => this.onChange("showRuns", value)}
+          id="showRuns"
+        />
+        <FormToggle
+          label="Show Succeded Column"
+          checked={showSucceeded}
+          onChange={(value) => this.onChange("showSucceeded", value)}
+          id="showSucceeded"
+        />
+        <FormToggle
+          label="Show Failed Column"
+          checked={showFailed}
+          onChange={(value) => this.onChange("showFailed", value)}
+          id="showFailed"
+        />
+        <FormToggle
+          label="Show Skipped Column"
+          checked={showSkipped}
+          onChange={(value) => this.onChange("showSkipped", value)}
+          id="showSkipped"
+        />
+        <FormToggle
+          label="Show Average Duration Column"
+          checked={showAverage}
+          onChange={(value) => this.onChange("showAverage", value)}
+          id="showAverage" />
       </div>
     );
   }
@@ -124,18 +112,20 @@ class PipelinesWidgetConfig
     );
 
     if (!deserialized) {
+      this.setState({
+        showAsPercentage: false,
+        showRuns: true,
+        showSucceeded: true,
+        showFailed: true,
+        showAverage: true,
+        showSkipped: true,
+      });
       return;
     }
 
     this.settings = deserialized;
 
-    this.setState({
-      showRuns: deserialized.showRuns,
-      showSucceeded: deserialized.showSucceeded,
-      showFailed: deserialized.showFailed,
-      showAverage: deserialized.showAverage,
-      showSkipped: deserialized.showSkipped,
-    });
+    this.setState({ ...deserialized });
   }
 
   async onSave(): Promise<Dashboard.SaveStatus> {

@@ -4,7 +4,7 @@ import React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import { showRootComponent } from "../../Common";
 import { Card } from "azure-devops-ui/Card";
-import { ColumnSorting, ISimpleTableCell, ITableColumn, SortOrder, Table, renderSimpleCell, sortItems } from "azure-devops-ui/Table";
+import { ColumnSorting, ISimpleTableCell, ITableColumn, SimpleTableCell, SortOrder, Table, renderSimpleCell, sortItems } from "azure-devops-ui/Table";
 import { ObservableValue } from "azure-devops-ui/Core/Observable";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { Observer } from "azure-devops-ui/Observer";
@@ -14,6 +14,7 @@ import { IPipelineWidgetSettings } from "../PipelinesWidgetConfig/IPipelineWidge
 interface IPipelinesWidgetState {
   title: string;
   pipelines: PipelineOverview[];
+  showAsPercentage: boolean;
   showRuns: boolean;
   showSucceeded: boolean;
   showFailed: boolean;
@@ -29,6 +30,11 @@ export interface IPipelineTableItem extends ISimpleTableCell {
   skipped: number;
   avgDuration: string;
 }
+
+const numericSortProps = {
+  ariaLabelAscending: "Sorted low to high",
+  ariaLabelDescending: "Sorted high to low",
+};
 
 class PipelinesWidget
   extends React.Component<{}, IPipelinesWidgetState>
@@ -46,15 +52,15 @@ class PipelinesWidget
       return <div></div>;
     }
 
-    const { pipelines, showRuns, showSucceeded, showFailed, showAverage, showSkipped } = this.state;
-    const tableItems = pipelines.map(({ name, stats }) => {
+    const { title, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showSkipped } = this.state;
+    const tableItems = pipelines.map(({ name, stats: { runs, succeeded, failed, skipped, avgDuration } }) => {
       return {
-        runs: stats.runs,
         name: name,
-        succeeded: stats.succeeded,
-        failed: stats.failed,
-        skipped: stats.skipped,
-        avgDuration: this.humanizeDuration(stats.avgDuration),
+        runs,
+        succeeded,
+        failed,
+        skipped,
+        avgDuration: this.humanizeDuration(avgDuration),
       }
     });
 
@@ -62,17 +68,35 @@ class PipelinesWidget
       new ArrayItemProvider(tableItems)
     );
 
-    const numericSortProps = {
-      ariaLabelAscending: "Sorted low to high",
-      ariaLabelDescending: "Sorted high to low",
-    };
+    const renderNumericColumn = (
+      rowIndex: number,
+      columnIndex: number,
+      tableColumn: ITableColumn<IPipelineTableItem>,
+      tableItem: IPipelineTableItem,
+    ): JSX.Element => {
+      const tableItemValue = Number(tableItem[tableColumn.id]);
+
+      if (Number.isNaN(tableItemValue)) {
+        return (
+          <div>0</div>
+        );
+      }
+      return (
+        <SimpleTableCell
+          columnIndex={columnIndex}
+          tableColumn={tableColumn}
+          key={"col-" + columnIndex}
+        >
+          <div>{showAsPercentage ? `${tableItemValue}%` : `${tableItemValue}`}</div>
+        </SimpleTableCell>
+      );
+    }
 
     let columns: ITableColumn<IPipelineTableItem>[] = [
       {
         id: "name",
         name: "Name",
         renderCell: renderSimpleCell,
-        readonly: true,
         width: -35,
         sortProps: {
           ariaLabelAscending: "Sorted A to Z",
@@ -82,9 +106,7 @@ class PipelinesWidget
     ];
 
     let sortFunctions = [
-      (item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-        return item1.name.localeCompare(item2.name);
-      }
+      (item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.name.localeCompare(item2.name)
     ];
 
     if (showRuns) {
@@ -92,59 +114,47 @@ class PipelinesWidget
         id: "runs",
         name: "Runs",
         renderCell: renderSimpleCell,
-        readonly: true,
         width: -12,
         sortProps: { ...numericSortProps }
       });
 
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-        return item1.runs - item2.runs;
-      });
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.runs - item2.runs);
     }
 
     if (showSucceeded) {
       columns.push({
         id: "succeeded",
         name: "Succeeded",
-        renderCell: renderSimpleCell,
-        readonly: true,
+        renderCell: renderNumericColumn,
         width: -14,
         sortProps: { ...numericSortProps }
       });
 
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-        return item2.succeeded - item1.succeeded;
-      });
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.succeeded - item2.succeeded);
     }
 
     if (showFailed) {
       columns.push({
         id: "failed",
         name: "Failed",
-        renderCell: renderSimpleCell,
-        readonly: true,
+        renderCell: renderNumericColumn,
         width: -12,
         sortProps: { ...numericSortProps }
       });
 
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-        return item2.failed - item1.failed;
-      });
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.failed - item2.failed);
     }
 
     if (showSkipped) {
       columns.push({
         id: "skipped",
         name: "Skipped",
-        renderCell: renderSimpleCell,
-        readonly: true,
+        renderCell: renderNumericColumn,
         width: -12,
         sortProps: { ...numericSortProps }
       });
 
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-        return item2.skipped - item1.skipped;
-      });
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.skipped - item2.skipped);
     }
 
     if (showAverage) {
@@ -152,11 +162,7 @@ class PipelinesWidget
         id: "avgDuration",
         name: "Avg Duration",
         renderCell: renderSimpleCell,
-        readonly: true,
         width: -15
-      });
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => {
-        return item1.name.localeCompare(item2.name);
       });
     }
 
@@ -174,8 +180,10 @@ class PipelinesWidget
       }
     );
 
+    const renderedTitle = `${title} (${pipelines.length ?? 0})`;
+
     return (
-      <Card className="flex-grow bolt-table-card" titleProps={{ text: this.state.title, ariaLevel: 3 }}>
+      <Card className="flex-grow bolt-table-card" titleProps={{ text: renderedTitle, ariaLevel: 3 }}>
         <Observer itemProvider={itemProvider}>
           {(observableProps: { itemProvider: ArrayItemProvider<IPipelineTableItem> }) => (
             <Table<IPipelineTableItem>
@@ -190,25 +198,6 @@ class PipelinesWidget
         </Observer>
       </Card>
     );
-  }
-
-  humanizeDuration(duration: number): string {
-    if (Number.isNaN(duration)) {
-      return "N/A";
-    }
-
-    const minutes = Math.floor(duration / 60000);
-    const seconds = Math.floor((duration % 60000) / 1000);
-
-    if (minutes === 0) {
-      return `${seconds}s`;
-    }
-    else if (seconds === 0) {
-      return `${minutes}m`;
-    }
-    else {
-      return `${minutes}m ${seconds}s`;
-    }
   }
 
   async preload(_widgetSettings: Dashboard.WidgetSettings): Promise<Dashboard.WidgetStatus> {
@@ -245,24 +234,47 @@ class PipelinesWidget
         widgetSettings.customSettings.data
       );
 
+      const pipelines = await getPipelines(deserialized?.showAsPercentage ?? false);
+
       if (!deserialized) {
+        this.setState({
+          title: "Pipelines Overview",
+          pipelines: pipelines,
+          showAsPercentage: false,
+          showRuns: true,
+          showSucceeded: true,
+          showFailed: true,
+          showSkipped: true,
+          showAverage: true,
+        })
         return;
       }
 
-      const pipelines = await getPipelines();
+      this.setState({ title: widgetSettings.name, pipelines, ...deserialized });
 
-      this.setState({
-        title: widgetSettings.name,
-        pipelines,
-        showRuns: deserialized.showRuns,
-        showSucceeded: deserialized.showSucceeded,
-        showFailed: deserialized.showFailed,
-        showSkipped: deserialized.showSkipped,
-        showAverage: deserialized.showAverage,
-      });
     } catch (e) {
       console.log("Error: ", e);
     }
   }
+
+  private humanizeDuration = (duration: number): string => {
+    if (Number.isNaN(duration)) {
+      return "N/A";
+    }
+
+    const minutes = Math.floor(duration / 60000);
+    const seconds = Math.floor((duration % 60000) / 1000);
+
+    if (minutes === 0) {
+      return `${seconds}s`;
+    }
+    else if (seconds === 0) {
+      return `${minutes}m`;
+    }
+    else {
+      return `${minutes}m ${seconds}s`;
+    }
+  }
+
 }
 showRootComponent(<PipelinesWidget />);

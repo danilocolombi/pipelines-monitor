@@ -21,7 +21,9 @@ export interface PipelineStats {
   avgDuration: number;
 }
 
-export async function getPipelines(): Promise<PipelineOverview[]> {
+export async function getPipelines(
+  showAsPercentage: boolean
+): Promise<PipelineOverview[]> {
   const projectName = await getCurrentProjectName();
 
   if (projectName === undefined) {
@@ -46,17 +48,21 @@ export async function getPipelines(): Promise<PipelineOverview[]> {
     .map(({ pipeline, runs }) => {
       return {
         name: pipeline.name,
-        stats: getPipelineStats(runs),
+        stats: getPipelineStats(runs, showAsPercentage),
       };
     })
     .sort((a, b) => b.stats.runs - a.stats.runs);
 }
 
-function getPipelineStats(runs: Run[]): PipelineStats {
+function getPipelineStats(
+  runs: Run[],
+  showAsPercentage: boolean
+): PipelineStats {
   let succeeded = 0;
   let failed = 0;
   let skipped = 0;
   let avgDuration = 0;
+  let runCount = 0;
 
   runs
     .filter((run) => run.finishedDate !== undefined)
@@ -69,10 +75,17 @@ function getPipelineStats(runs: Run[]): PipelineStats {
       } else if (run.result.toString() === "canceled") {
         skipped += 1;
       }
+      runCount += 1;
     });
 
+  if (showAsPercentage && runCount > 0) {
+    succeeded = Math.round((succeeded / runCount) * 100);
+    failed = Math.round((failed / runCount) * 100);
+    skipped = Math.round((skipped / runCount) * 100);
+  }
+
   return {
-    runs: runs.length,
+    runs: runCount,
     succeeded,
     failed,
     skipped,

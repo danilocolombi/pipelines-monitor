@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "pipelines-runs-analyzer-widget",
   "publisher": "danilocolombi",
-  "version": "1.0.186",
+  "version": "1.0.216",
   "name": "Pipelines Runs Analyzer Widget",
   "description": "Azure DevOps Extension",
   "categories": [
@@ -23,6 +23,10 @@
     }
   },
   "files": [
+    {
+      "path": "static",
+      "addressable": true
+    },
     {
       "path": "dist",
       "addressable": true

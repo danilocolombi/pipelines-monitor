@@ -6,7 +6,8 @@
       "targets": ["ms.vss-dashboards-web.widget-configuration"],
       "properties": {
         "name": "Pipelines Overview Widget Config",
-        "uri": "dist/PipelinesWidgetConfig/PipelinesWidgetConfig.html"
+        "uri": "dist/PipelinesWidgetConfig/PipelinesWidgetConfig.html",
+        "logo": "logo.png"
       }
     }
   ]
