@@ -28,7 +28,7 @@ export interface IPipelineTableItem extends ISimpleTableCell {
   succeeded: number;
   failed: number;
   skipped: number;
-  avgDuration: string;
+  avgDuration: number;
 }
 
 const numericSortProps = {
@@ -60,7 +60,7 @@ class PipelinesWidget
         succeeded,
         failed,
         skipped,
-        avgDuration: this.humanizeDuration(avgDuration),
+        avgDuration: avgDuration,
       }
     });
 
@@ -88,6 +88,44 @@ class PipelinesWidget
           key={"col-" + columnIndex}
         >
           <div>{showAsPercentage ? `${tableItemValue}%` : `${tableItemValue}`}</div>
+        </SimpleTableCell>
+      );
+    }
+
+    const humanizeDuration = (duration: number): string => {
+      if (Number.isNaN(duration)) {
+        return "N/A";
+      }
+
+      const minutes = Math.floor(duration / 60000);
+      const seconds = Math.floor((duration % 60000) / 1000);
+
+      if (minutes === 0) {
+        return `${seconds}s`;
+      }
+      else if (seconds === 0) {
+        return `${minutes}m`;
+      }
+      else {
+        return `${minutes}m ${seconds}s`;
+      }
+    }
+
+    const renderAverageColumn = (
+      rowIndex: number,
+      columnIndex: number,
+      tableColumn: ITableColumn<IPipelineTableItem>,
+      tableItem: IPipelineTableItem,
+    ): JSX.Element => {
+      const tableItemValue = Number(tableItem[tableColumn.id]);
+      const duration = humanizeDuration(tableItemValue);
+      return (
+        <SimpleTableCell
+          columnIndex={columnIndex}
+          tableColumn={tableColumn}
+          key={"col-" + columnIndex}
+        >
+          <div>{duration}</div>
         </SimpleTableCell>
       );
     }
@@ -161,9 +199,12 @@ class PipelinesWidget
       columns.push({
         id: "avgDuration",
         name: "Avg Duration",
-        renderCell: renderSimpleCell,
-        width: -15
+        renderCell: renderAverageColumn,
+        width: -15,
+        sortProps: { ...numericSortProps }
       });
+
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.avgDuration - item2.avgDuration);
     }
 
     const sortingBehavior = new ColumnSorting<IPipelineTableItem>(
