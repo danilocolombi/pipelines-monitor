@@ -4,7 +4,7 @@ import React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import { showRootComponent } from "../../Common";
 import { Card } from "azure-devops-ui/Card";
-import { ColumnSorting, ISimpleTableCell, ITableColumn, SimpleTableCell, SortOrder, Table, renderSimpleCell, sortItems } from "azure-devops-ui/Table";
+import { ColumnSorting, IColumnSortProps, ISimpleTableCell, ITableColumn, SimpleTableCell, SortOrder, Table, renderSimpleCell, sortItems } from "azure-devops-ui/Table";
 import { ObservableValue } from "azure-devops-ui/Core/Observable";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { Observer } from "azure-devops-ui/Observer";
@@ -31,11 +31,6 @@ export interface IPipelineTableItem extends ISimpleTableCell {
   avgDuration: number;
 }
 
-const numericSortProps = {
-  ariaLabelAscending: "Sorted low to high",
-  ariaLabelDescending: "Sorted high to low",
-};
-
 class PipelinesWidget
   extends React.Component<{}, IPipelinesWidgetState>
   implements Dashboard.IConfigurableWidget {
@@ -55,12 +50,12 @@ class PipelinesWidget
     const { title, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showSkipped } = this.state;
     const tableItems = pipelines.map(({ name, stats: { runs, succeeded, failed, skipped, avgDuration } }) => {
       return {
-        name: name,
+        name,
         runs,
         succeeded,
         failed,
         skipped,
-        avgDuration: avgDuration,
+        avgDuration,
       }
     });
 
@@ -74,22 +69,13 @@ class PipelinesWidget
       tableColumn: ITableColumn<IPipelineTableItem>,
       tableItem: IPipelineTableItem,
     ): JSX.Element => {
-      const tableItemValue = Number(tableItem[tableColumn.id]);
+      const value = Number(tableItem[tableColumn.id]);
 
-      if (Number.isNaN(tableItemValue)) {
-        return (
-          <div>0</div>
-        );
+      if (Number.isNaN(value)) {
+        return <div></div>;
       }
-      return (
-        <SimpleTableCell
-          columnIndex={columnIndex}
-          tableColumn={tableColumn}
-          key={"col-" + columnIndex}
-        >
-          <div>{showAsPercentage ? `${tableItemValue}%` : `${tableItemValue}`}</div>
-        </SimpleTableCell>
-      );
+
+      return renderCell(columnIndex, tableColumn, showAsPercentage ? `${value}%` : `${value}`);
     }
 
     const humanizeDuration = (duration: number): string => {
@@ -118,29 +104,47 @@ class PipelinesWidget
       tableItem: IPipelineTableItem,
     ): JSX.Element => {
       const tableItemValue = Number(tableItem[tableColumn.id]);
-      const duration = humanizeDuration(tableItemValue);
+      return renderCell(columnIndex, tableColumn, humanizeDuration(tableItemValue));
+    }
+
+    const renderCell = (
+      columnIndex: number,
+      tableColumn: ITableColumn<IPipelineTableItem>,
+      content: string
+    ): JSX.Element => {
       return (
         <SimpleTableCell
           columnIndex={columnIndex}
           tableColumn={tableColumn}
           key={"col-" + columnIndex}
         >
-          <div>{duration}</div>
+          <div>{content}</div>
         </SimpleTableCell>
       );
     }
 
+    const numericSortProps = {
+      ariaLabelAscending: "Sorted low to high",
+      ariaLabelDescending: "Sorted high to low",
+    };
+
+    const addPipelineTableColumn = <T extends keyof IPipelineTableItem>(
+      property: T,
+      width: number = -12,
+      renderCell: (rowIndex: number, columnIndex: number, tableColumn: ITableColumn<IPipelineTableItem>, tableItem: IPipelineTableItem) => JSX.Element = renderNumericColumn,
+      sortProps: IColumnSortProps = numericSortProps,
+    ): ITableColumn<IPipelineTableItem> => {
+      return {
+        id: property.toString(),
+        name: property.toString(),
+        width: width,
+        renderCell: renderCell,
+        sortProps: { ...sortProps }
+      };
+    }
+
     let columns: ITableColumn<IPipelineTableItem>[] = [
-      {
-        id: "name",
-        name: "Name",
-        renderCell: renderSimpleCell,
-        width: -35,
-        sortProps: {
-          ariaLabelAscending: "Sorted A to Z",
-          ariaLabelDescending: "Sorted Z to A",
-        },
-      },
+      addPipelineTableColumn("name", -35, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", })
     ];
 
     let sortFunctions = [
@@ -148,62 +152,27 @@ class PipelinesWidget
     ];
 
     if (showRuns) {
-      columns.push({
-        id: "runs",
-        name: "Runs",
-        renderCell: renderSimpleCell,
-        width: -12,
-        sortProps: { ...numericSortProps }
-      });
-
+      columns.push(addPipelineTableColumn("runs"));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.runs - item2.runs);
     }
 
     if (showSucceeded) {
-      columns.push({
-        id: "succeeded",
-        name: "Succeeded",
-        renderCell: renderNumericColumn,
-        width: -14,
-        sortProps: { ...numericSortProps }
-      });
-
+      columns.push(addPipelineTableColumn("succeeded", -14));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.succeeded - item2.succeeded);
     }
 
     if (showFailed) {
-      columns.push({
-        id: "failed",
-        name: "Failed",
-        renderCell: renderNumericColumn,
-        width: -12,
-        sortProps: { ...numericSortProps }
-      });
-
+      columns.push(addPipelineTableColumn("failed"));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.failed - item2.failed);
     }
 
     if (showSkipped) {
-      columns.push({
-        id: "skipped",
-        name: "Skipped",
-        renderCell: renderNumericColumn,
-        width: -12,
-        sortProps: { ...numericSortProps }
-      });
-
+      columns.push(addPipelineTableColumn("skipped"));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.skipped - item2.skipped);
     }
 
     if (showAverage) {
-      columns.push({
-        id: "avgDuration",
-        name: "Avg Duration",
-        renderCell: renderAverageColumn,
-        width: -15,
-        sortProps: { ...numericSortProps }
-      });
-
+      columns.push(addPipelineTableColumn("avgDuration", -15, renderAverageColumn));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.avgDuration - item2.avgDuration);
     }
 
@@ -295,25 +264,6 @@ class PipelinesWidget
 
     } catch (e) {
       console.log("Error: ", e);
-    }
-  }
-
-  private humanizeDuration = (duration: number): string => {
-    if (Number.isNaN(duration)) {
-      return "N/A";
-    }
-
-    const minutes = Math.floor(duration / 60000);
-    const seconds = Math.floor((duration % 60000) / 1000);
-
-    if (minutes === 0) {
-      return `${seconds}s`;
-    }
-    else if (seconds === 0) {
-      return `${minutes}m`;
-    }
-    else {
-      return `${minutes}m ${seconds}s`;
     }
   }
 
