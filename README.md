@@ -37,13 +37,13 @@ You are now on the Dashboards page. Use the 'Add a widget' button to add the wid
 
 ### 3. Search for Pipelines Monitor
 
-Use the search box to find the Pipelines Monitor widget.
+Use the search box to find the Pipelines Monitor widget, and use the 'Add' button to add it to your dashboard.
 
-![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/pipelines-overview-search.png?raw=true)
+![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/pipelines-monitor-search.png?raw=true)
 
 ### 4. Configure the Widget
 
-You can choose the configure option to customize.
+You can choose the configure option to customize the widget settings.
 
 ![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/configure-option.png?raw=true)
 
