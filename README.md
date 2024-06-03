@@ -2,6 +2,8 @@
 
 **Pipelines Monitor**: A Azure DevOps extension designed to deliver insightful analytics on pipeline executions within your Team Project. Seamlessly integrating as a widget, it enhances your Azure DevOps Dashboard by providing a breakdown of your pipelines.
 
+![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/widget-preview.png?raw=true)
+
 ## Table of Contents
 
 - [Pipelines Monitor](#pipelines-monitor)
