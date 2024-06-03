@@ -8,7 +8,7 @@
         ".pipelines-widget.config"
       ],
       "properties": {
-        "name": "Pipelines Overview",
+        "name": "Pipelines Monitor",
         "description": "Shows pipelines stats of team project",
         "catalogIconUrl": "static/logo.png",
         "uri": "dist/PipelinesWidget/PipelinesWidget.html",

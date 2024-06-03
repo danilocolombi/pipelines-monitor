@@ -253,7 +253,7 @@ class PipelinesWidget
 
       if (pipelines == null || pipelines.length === 0) {
         this.setState({
-          title: "Pipelines Overview",
+          title: "Pipelines Monitor",
           error: true,
           errorMessage: "No pipelines found"
         })
@@ -262,7 +262,7 @@ class PipelinesWidget
 
       if (!deserialized) {
         this.setState({
-          title: "Pipelines Overview",
+          title: "Pipelines Monitor",
           pipelines: pipelines,
           showAsPercentage: false,
           showRuns: true,
