@@ -10,7 +10,6 @@
   - [Pipelines Monitor Features](#pipelines-monitor-features)
   - [Install](#install)
   - [Use](#use)
-  - [License](#license)
 
 ## Pipelines Monitor Features
 
@@ -53,7 +52,3 @@ You can choose the configure option to customize.
 Select the settings you want to use.
 
 ![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/widget-settings.png?raw=true)
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
