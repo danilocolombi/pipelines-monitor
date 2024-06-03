@@ -12,7 +12,7 @@ export interface IFormToggleProps {
 
 export default function FormToggle(props: IFormToggleProps) {
   return (
-    <div className="form-row">
+    <div className="flex-row padding-bottom-4">
       <div className="body-m width-75">
         {props.label}
       </div>

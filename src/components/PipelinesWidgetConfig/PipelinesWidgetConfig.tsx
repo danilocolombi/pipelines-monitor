@@ -107,21 +107,15 @@ class PipelinesWidgetConfig
   private async setStateFromWidgetSettings(
     widgetSettings: Dashboard.WidgetSettings
   ) {
-    const deserialized: IPipelineWidgetSettings | null = JSON.parse(
-      widgetSettings.customSettings.data
-    );
-
-    if (!deserialized) {
-      this.setState({
-        showAsPercentage: false,
-        showRuns: true,
-        showSucceeded: true,
-        showFailed: true,
-        showAverage: true,
-        showSkipped: true,
-      });
-      return;
-    }
+    const deserialized: IPipelineWidgetSettings = JSON.parse(widgetSettings.customSettings.data) ??
+    {
+      showAsPercentage: false,
+      showRuns: true,
+      showSucceeded: true,
+      showFailed: true,
+      showAverage: true,
+      showSkipped: true,
+    };
 
     this.settings = deserialized;
 

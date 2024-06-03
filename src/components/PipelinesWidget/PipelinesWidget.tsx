@@ -20,6 +20,8 @@ interface IPipelinesWidgetState {
   showFailed: boolean;
   showAverage: boolean;
   showSkipped: boolean;
+  error: boolean;
+  errorMessage: string;
 }
 
 export interface IPipelineTableItem extends ISimpleTableCell {
@@ -34,7 +36,6 @@ export interface IPipelineTableItem extends ISimpleTableCell {
 class PipelinesWidget
   extends React.Component<{}, IPipelinesWidgetState>
   implements Dashboard.IConfigurableWidget {
-
   componentDidMount(): void {
     SDK.init().then(() => {
       SDK.register("pipelines-widget", this);
@@ -45,6 +46,10 @@ class PipelinesWidget
 
     if (!this.state) {
       return <div></div>;
+    }
+
+    if (this.state.error) {
+      return <div className="flex-column flex-center justify-center font-size-ll full-width">{this.state.errorMessage}</div>;
     }
 
     const { title, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showSkipped } = this.state;
@@ -130,13 +135,14 @@ class PipelinesWidget
 
     const addPipelineTableColumn = <T extends keyof IPipelineTableItem>(
       property: T,
+      name: string,
       width: number = -12,
       renderCell: (rowIndex: number, columnIndex: number, tableColumn: ITableColumn<IPipelineTableItem>, tableItem: IPipelineTableItem) => JSX.Element = renderNumericColumn,
       sortProps: IColumnSortProps = numericSortProps,
     ): ITableColumn<IPipelineTableItem> => {
       return {
         id: property.toString(),
-        name: property.toString(),
+        name: name,
         width: width,
         renderCell: renderCell,
         sortProps: { ...sortProps }
@@ -144,7 +150,7 @@ class PipelinesWidget
     }
 
     let columns: ITableColumn<IPipelineTableItem>[] = [
-      addPipelineTableColumn("name", -35, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", })
+      addPipelineTableColumn("name", "Name", -35, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", })
     ];
 
     let sortFunctions = [
@@ -152,27 +158,27 @@ class PipelinesWidget
     ];
 
     if (showRuns) {
-      columns.push(addPipelineTableColumn("runs"));
+      columns.push(addPipelineTableColumn("runs", "Runs", -12, renderSimpleCell));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.runs - item2.runs);
     }
 
     if (showSucceeded) {
-      columns.push(addPipelineTableColumn("succeeded", -14));
+      columns.push(addPipelineTableColumn("succeeded", "Succeeded", -14));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.succeeded - item2.succeeded);
     }
 
     if (showFailed) {
-      columns.push(addPipelineTableColumn("failed"));
+      columns.push(addPipelineTableColumn("failed", "Failed"));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.failed - item2.failed);
     }
 
     if (showSkipped) {
-      columns.push(addPipelineTableColumn("skipped"));
+      columns.push(addPipelineTableColumn("skipped", "Skipped"));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.skipped - item2.skipped);
     }
 
     if (showAverage) {
-      columns.push(addPipelineTableColumn("avgDuration", -15, renderAverageColumn));
+      columns.push(addPipelineTableColumn("avgDuration", "Avg Duration", -15, renderAverageColumn));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.avgDuration - item2.avgDuration);
     }
 
@@ -243,8 +249,16 @@ class PipelinesWidget
       const deserialized: IPipelineWidgetSettings | null = JSON.parse(
         widgetSettings.customSettings.data
       );
-
       const pipelines = await getPipelines(deserialized?.showAsPercentage ?? false);
+
+      if (pipelines == null || pipelines.length === 0) {
+        this.setState({
+          title: "Pipelines Overview",
+          error: true,
+          errorMessage: "No pipelines found"
+        })
+        return;
+      }
 
       if (!deserialized) {
         this.setState({
