@@ -207,7 +207,9 @@ class PipelinesWidget
               columns={columns}
               behaviors={[sortingBehavior]}
               itemProvider={observableProps.itemProvider}
+              scrollable={true}
               role="table"
+              pageSize={100}
               containerClassName="h-scroll-auto"
             />
           )}
