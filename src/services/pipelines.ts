@@ -5,6 +5,7 @@ import { getCurrentProjectName } from "./projects";
 import {
   Build,
   BuildRestClient,
+  BuildResult,
 } from "azure-devops-extension-api/Build";
 export interface PipelineWithRuns {
   pipeline: Pipeline;
@@ -72,11 +73,11 @@ function getPipelineStats(
     .filter((run) => run.finishTime !== undefined)
     .forEach((run) => {
       avgDuration += run.finishTime.valueOf() - run.startTime.valueOf();
-      if (run.result.toString() === "succeeded") {
+      if (run.result === BuildResult.Succeeded) {
         succeeded += 1;
-      } else if (run.result.toString() === "failed") {
+      } else if (run.result === BuildResult.Failed) {
         failed += 1;
-      } else if (run.result.toString() === "canceled") {
+      } else if (run.result === BuildResult.Canceled) {
         skipped += 1;
       }
       runCount += 1;
