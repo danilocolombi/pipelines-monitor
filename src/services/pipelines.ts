@@ -2,10 +2,13 @@ import { getClient } from "azure-devops-extension-api";
 import { PipelinesRestClient } from "azure-devops-extension-api/Pipelines/PipelinesClient";
 import { Pipeline, Run } from "azure-devops-extension-api/Pipelines/Pipelines";
 import { getCurrentProjectName } from "./projects";
-
+import {
+  Build,
+  BuildRestClient,
+} from "azure-devops-extension-api/Build";
 export interface PipelineWithRuns {
   pipeline: Pipeline;
-  runs: Run[];
+  runs: Build[];
 }
 
 export interface PipelineOverview {
@@ -32,12 +35,13 @@ export async function getPipelines(
 
   const client = getClient(PipelinesRestClient);
   const pipelines = await client.listPipelines(projectName);
+  const buildClient = getClient(BuildRestClient);
 
   const runPromises: Promise<PipelineWithRuns>[] = pipelines.map(
     async (pipeline) => {
       return {
         pipeline,
-        runs: await client.listRuns(projectName, pipeline.id),
+        runs: await buildClient.getBuilds(projectName, [pipeline.id]),
       };
     }
   );
@@ -55,7 +59,7 @@ export async function getPipelines(
 }
 
 function getPipelineStats(
-  runs: Run[],
+  runs: Build[],
   showAsPercentage: boolean
 ): PipelineStats {
   let succeeded = 0;
@@ -65,9 +69,9 @@ function getPipelineStats(
   let runCount = 0;
 
   runs
-    .filter((run) => run.finishedDate !== undefined)
+    .filter((run) => run.finishTime !== undefined)
     .forEach((run) => {
-      avgDuration += run.finishedDate.valueOf() - run.createdDate.valueOf();
+      avgDuration += run.finishTime.valueOf() - run.startTime.valueOf();
       if (run.result.toString() === "succeeded") {
         succeeded += 1;
       } else if (run.result.toString() === "failed") {
