@@ -84,10 +84,6 @@ class PipelinesWidget
     }
 
     const humanizeDuration = (duration: number): string => {
-      if (Number.isNaN(duration)) {
-        return "N/A";
-      }
-
       const minutes = Math.floor(duration / 60000);
       const seconds = Math.floor((duration % 60000) / 1000);
 
