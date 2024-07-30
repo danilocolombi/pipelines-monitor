@@ -8,8 +8,9 @@ import { ColumnSorting, IColumnSortProps, ISimpleTableCell, ITableColumn, Simple
 import { ObservableValue } from "azure-devops-ui/Core/Observable";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { Observer } from "azure-devops-ui/Observer";
-import { PipelineOverview, getPipelines } from "../../services/pipelines";
+import { getPipelineOverview } from "../../services/pipelines";
 import { IPipelineWidgetSettings } from "../PipelinesWidgetConfig/IPipelineWidgetSettings";
+import { PipelineOverview } from "../../models/pipeline-overview";
 
 interface IPipelinesWidgetState {
   title: string;
@@ -84,10 +85,6 @@ class PipelinesWidget
     }
 
     const humanizeDuration = (duration: number): string => {
-      if (Number.isNaN(duration)) {
-        return "N/A";
-      }
-
       const minutes = Math.floor(duration / 60000);
       const seconds = Math.floor((duration % 60000) / 1000);
 
@@ -251,7 +248,7 @@ class PipelinesWidget
       const deserialized: IPipelineWidgetSettings | null = JSON.parse(
         widgetSettings.customSettings.data
       );
-      const pipelines = await getPipelines(deserialized?.showAsPercentage ?? false);
+      const pipelines = await getPipelineOverview(deserialized?.showAsPercentage ?? false);
 
       if (pipelines == null || pipelines.length === 0) {
         this.setState({
