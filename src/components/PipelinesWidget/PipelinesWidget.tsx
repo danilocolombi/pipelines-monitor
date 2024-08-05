@@ -15,6 +15,7 @@ import { PipelineOverview } from "../../models/pipeline-overview";
 interface IPipelinesWidgetState {
   title: string;
   pipelines: PipelineOverview[];
+  showProjectName: boolean;
   showAsPercentage: boolean;
   showRuns: boolean;
   showSucceeded: boolean;
@@ -23,10 +24,12 @@ interface IPipelinesWidgetState {
   showCanceled: boolean;
   error: boolean;
   errorMessage: string;
+  renderAllProjects: boolean;
 }
 
 export interface IPipelineTableItem extends ISimpleTableCell {
   name: string;
+  projectName: string;
   runs: number;
   succeeded: number;
   failed: number;
@@ -53,10 +56,11 @@ class PipelinesWidget
       return <div className="flex-column flex-center justify-center font-size-ll full-width">{this.state.errorMessage}</div>;
     }
 
-    const { title, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showCanceled } = this.state;
-    const tableItems = pipelines.map(({ name, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
+    const { title, showProjectName, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showCanceled } = this.state;
+    const tableItems = pipelines.map(({ name, projectName, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
       return {
         name,
+        projectName,
         runs,
         succeeded,
         failed,
@@ -147,15 +151,20 @@ class PipelinesWidget
     }
 
     let columns: ITableColumn<IPipelineTableItem>[] = [
-      addPipelineTableColumn("name", "Name", -35, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", })
+      addPipelineTableColumn("name", "Name", -35, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }),
     ];
 
     let sortFunctions = [
-      (item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.name.localeCompare(item2.name)
+      (item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.name.localeCompare(item2.name),
     ];
 
+    if (showProjectName) {
+      columns.push(addPipelineTableColumn("projectName", "Project", -30, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }));
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.projectName.localeCompare(item2.projectName));
+    }
+
     if (showRuns) {
-      columns.push(addPipelineTableColumn("runs", "Runs", -12, renderSimpleCell));
+      columns.push(addPipelineTableColumn("runs", "Runs", -10, renderSimpleCell));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.runs - item2.runs);
     }
 
@@ -248,7 +257,8 @@ class PipelinesWidget
       const deserialized: IPipelineWidgetSettings | null = JSON.parse(
         widgetSettings.customSettings.data
       );
-      const pipelines = await getPipelineOverview(deserialized?.showAsPercentage ?? false);
+
+      const pipelines = await getPipelineOverview(deserialized?.renderAllProjects ?? false, deserialized?.showAsPercentage ?? false);
 
       if (pipelines == null || pipelines.length === 0) {
         this.setState({
@@ -263,12 +273,14 @@ class PipelinesWidget
         this.setState({
           title: "Pipelines Monitor",
           pipelines: pipelines,
+          showProjectName: false,
           showAsPercentage: false,
           showRuns: true,
           showSucceeded: true,
           showFailed: true,
           showCanceled: true,
           showAverage: true,
+          renderAllProjects: false,
         })
         return;
       }

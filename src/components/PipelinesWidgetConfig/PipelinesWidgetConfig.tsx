@@ -5,14 +5,19 @@ import * as SDK from "azure-devops-extension-sdk";
 import { showRootComponent } from "../../Common";
 import { IPipelineWidgetSettings } from "./IPipelineWidgetSettings";
 import FormToggle from "../FormToggle/FormToggle";
+import { Dropdown } from "azure-devops-ui/Dropdown";
+import { IListBoxItem } from "azure-devops-ui/ListBox";
+import { DropdownSelection } from "azure-devops-ui/Utilities/DropdownSelection";
 
 interface IPipelinesWidgetConfigState {
+  showProjectName: boolean;
   showAsPercentage: boolean;
   showRuns: boolean;
   showSucceeded: boolean;
   showFailed: boolean;
   showCanceled: boolean;
   showAverage: boolean;
+  renderAllProjects: boolean;
 }
 
 class PipelinesWidgetConfig
@@ -21,6 +26,7 @@ class PipelinesWidgetConfig
 
   private settings: IPipelineWidgetSettings = {} as IPipelineWidgetSettings;
   private widgetConfigurationContext?: Dashboard.IWidgetConfigurationContext;
+  private selection = new DropdownSelection();
 
   componentDidMount() {
     SDK.init().then(() => {
@@ -35,12 +41,39 @@ class PipelinesWidgetConfig
       return <div></div>;
     }
 
-    const { showAsPercentage, showRuns, showSucceeded, showFailed, showCanceled, showAverage } = this.state;
+    const { showProjectName, showAsPercentage, showRuns, showSucceeded, showFailed, showCanceled, showAverage, renderAllProjects } = this.state;
+
+    if (renderAllProjects) {
+      this.selection.select(1);
+    }
+    else {
+      this.selection.select(0);
+    }
 
     return (
       <div className="content">
+        <div className="flex-column">
+          <label className="select-label">Render Data From:</label>
+          <div className="flex-column">
+            <Dropdown
+              ariaLabel="Basic"
+              items={[
+                { id: "current", text: "Current project" },
+                { id: "all", text: "All Projects" }
+              ]}
+              onSelect={this.onSelect}
+              selection={this.selection}
+            />
+          </div>
+        </div>
         <FormToggle
-          label="Show as Percentage"
+          label="Show Project Name"
+          checked={showProjectName}
+          onChange={(value) => this.onChange("showProjectName", value)}
+          id="showProjectName"
+        />
+        <FormToggle
+          label="Show Numbers as Percentage"
           checked={showAsPercentage}
           onChange={(value) => this.onChange("showAsPercentage", value)}
           id="showAsPercentage"
@@ -78,6 +111,11 @@ class PipelinesWidgetConfig
     );
   }
 
+  private onSelect = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) => {
+    const value = item.id === "all";
+    this.onChange("renderAllProjects", value);
+  };
+
   private onChange(key: keyof IPipelineWidgetSettings, value: boolean) {
     this.updateSettingsAndNotify({ [key]: value });
     this.setState({ ...this.state, [key]: value });
@@ -109,12 +147,14 @@ class PipelinesWidgetConfig
   ) {
     const deserialized: IPipelineWidgetSettings = JSON.parse(widgetSettings.customSettings.data) ??
     {
+      showProjectName: false,
       showAsPercentage: false,
       showRuns: true,
       showSucceeded: true,
       showFailed: true,
       showAverage: true,
       showCanceled: true,
+      renderAllProjects: false,
     };
 
     this.settings = deserialized;
