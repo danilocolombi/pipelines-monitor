@@ -11,7 +11,7 @@ interface IPipelinesWidgetConfigState {
   showRuns: boolean;
   showSucceeded: boolean;
   showFailed: boolean;
-  showSkipped: boolean;
+  showCanceled: boolean;
   showAverage: boolean;
 }
 
@@ -35,7 +35,7 @@ class PipelinesWidgetConfig
       return <div></div>;
     }
 
-    const { showAsPercentage, showRuns, showSucceeded, showFailed, showSkipped, showAverage } = this.state;
+    const { showAsPercentage, showRuns, showSucceeded, showFailed, showCanceled, showAverage } = this.state;
 
     return (
       <div className="content">
@@ -64,10 +64,10 @@ class PipelinesWidgetConfig
           id="showFailed"
         />
         <FormToggle
-          label="Show Skipped Column"
-          checked={showSkipped}
-          onChange={(value) => this.onChange("showSkipped", value)}
-          id="showSkipped"
+          label="Show Canceled Column"
+          checked={showCanceled}
+          onChange={(value) => this.onChange("showCanceled", value)}
+          id="showCanceled"
         />
         <FormToggle
           label="Show Average Duration Column"
@@ -114,7 +114,7 @@ class PipelinesWidgetConfig
       showSucceeded: true,
       showFailed: true,
       showAverage: true,
-      showSkipped: true,
+      showCanceled: true,
     };
 
     this.settings = deserialized;

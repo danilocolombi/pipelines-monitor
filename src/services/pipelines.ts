@@ -30,7 +30,7 @@ export async function getPipelineOverview(
   buildsGroupByPipeline.forEach((builds, pipeline) => {
     let succeeded = 0;
     let failed = 0;
-    let skipped = 0;
+    let canceled = 0;
     let avgDuration = 0;
     builds.forEach((run) => {
       avgDuration += run.finishTime.valueOf() - run.startTime.valueOf();
@@ -39,14 +39,14 @@ export async function getPipelineOverview(
       } else if (run.result === BuildResult.Failed) {
         failed += 1;
       } else if (run.result === BuildResult.Canceled) {
-        skipped += 1;
+        canceled += 1;
       }
     });
 
     if (showAsPercentage) {
       succeeded = convertValueToPercent(succeeded, builds.length);
       failed = convertValueToPercent(failed, builds.length);
-      skipped = convertValueToPercent(skipped, builds.length);
+      canceled = convertValueToPercent(canceled, builds.length);
     }
 
     stats.push({
@@ -55,7 +55,7 @@ export async function getPipelineOverview(
         runs: builds.length,
         succeeded,
         failed,
-        skipped,
+        canceled,
         avgDuration: avgDuration / builds.length,
       },
     });
@@ -70,7 +70,7 @@ export async function getPipelineOverview(
             runs: 0,
             succeeded: 0,
             failed: 0,
-            skipped: 0,
+            canceled: 0,
             avgDuration: 0,
           },
         });
