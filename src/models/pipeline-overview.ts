@@ -4,7 +4,7 @@ export interface PipelineOverview {
     runs: number;
     succeeded: number;
     failed: number;
-    skipped: number;
+    canceled: number;
     avgDuration: number;
   };
 }

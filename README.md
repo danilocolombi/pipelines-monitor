@@ -15,7 +15,7 @@
 
 - **Comprehensive Pipeline Inventory**: Gain a comprehensive view of all pipelines within your Team Project.
 - **Pipeline Execution Tracking**: Monitor the total number of executions for each pipeline.
-- **Outcome Categorization**: Classify and count the pipeline runs by their outcomes — successful, failed, or skipped.
+- **Outcome Categorization**: Classify and count the pipeline runs by their outcomes — successful, failed, or canceled.
 - **Performance Metrics**: Calculate and review the average time taken for the completion of pipeline runs.
 
 ## Install

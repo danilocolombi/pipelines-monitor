@@ -3,6 +3,6 @@ export interface IPipelineWidgetSettings {
   showSucceeded: boolean;
   showFailed: boolean;
   showAverage: boolean;
-  showSkipped: boolean;
+  showCanceled: boolean;
   showAsPercentage: boolean;
 }

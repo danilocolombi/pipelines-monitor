@@ -20,7 +20,7 @@ interface IPipelinesWidgetState {
   showSucceeded: boolean;
   showFailed: boolean;
   showAverage: boolean;
-  showSkipped: boolean;
+  showCanceled: boolean;
   error: boolean;
   errorMessage: string;
 }
@@ -30,7 +30,7 @@ export interface IPipelineTableItem extends ISimpleTableCell {
   runs: number;
   succeeded: number;
   failed: number;
-  skipped: number;
+  canceled: number;
   avgDuration: number;
 }
 
@@ -53,14 +53,14 @@ class PipelinesWidget
       return <div className="flex-column flex-center justify-center font-size-ll full-width">{this.state.errorMessage}</div>;
     }
 
-    const { title, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showSkipped } = this.state;
-    const tableItems = pipelines.map(({ name, stats: { runs, succeeded, failed, skipped, avgDuration } }) => {
+    const { title, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showCanceled } = this.state;
+    const tableItems = pipelines.map(({ name, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
       return {
         name,
         runs,
         succeeded,
         failed,
-        skipped,
+        canceled,
         avgDuration,
       }
     });
@@ -169,9 +169,9 @@ class PipelinesWidget
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.failed - item2.failed);
     }
 
-    if (showSkipped) {
-      columns.push(addPipelineTableColumn("skipped", "Skipped"));
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.skipped - item2.skipped);
+    if (showCanceled) {
+      columns.push(addPipelineTableColumn("canceled", "Canceled"));
+      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.canceled - item2.canceled);
     }
 
     if (showAverage) {
@@ -267,7 +267,7 @@ class PipelinesWidget
           showRuns: true,
           showSucceeded: true,
           showFailed: true,
-          showSkipped: true,
+          showCanceled: true,
           showAverage: true,
         })
         return;
