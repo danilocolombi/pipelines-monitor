@@ -1,6 +1,6 @@
 # Pipelines Monitor
 
-**Pipelines Monitor**: A Azure DevOps extension designed to deliver insightful analytics on pipeline executions within your Team Project. Seamlessly integrating as a widget, it enhances your Azure DevOps Dashboard by providing a breakdown of your pipelines.
+**Pipelines Monitor**: A Azure DevOps extension designed to deliver insightful analytics on pipeline executions across your organization. Seamlessly integrating as a widget, it enhances your Azure DevOps Dashboard by providing a breakdown of your pipelines.
 
 ![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/widget-preview.png?raw=true)
 
@@ -13,7 +13,7 @@
 
 ## Pipelines Monitor Features
 
-- **Comprehensive Pipeline Inventory**: Gain a comprehensive view of all pipelines within your Team Project.
+- **Comprehensive Pipeline Inventory**: Gain a comprehensive view of all pipelines within your organization.
 - **Pipeline Execution Tracking**: Monitor the total number of executions for each pipeline.
 - **Outcome Categorization**: Classify and count the pipeline runs by their outcomes — successful, failed, or canceled.
 - **Performance Metrics**: Calculate and review the average time taken for the completion of pipeline runs.

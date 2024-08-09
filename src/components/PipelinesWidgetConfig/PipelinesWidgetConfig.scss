@@ -7,3 +7,8 @@
   flex-direction: column;
   gap: 32px;
 }
+
+.select-label {
+  margin-bottom: 8px;
+  color: var(--text-secondary-color, rgba(0, 0, 0, .55));
+}

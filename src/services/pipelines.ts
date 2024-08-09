@@ -1,7 +1,7 @@
 import { getClient } from "azure-devops-extension-api";
 import { PipelinesRestClient } from "azure-devops-extension-api/Pipelines/PipelinesClient";
 import { Pipeline } from "azure-devops-extension-api/Pipelines/Pipelines";
-import { getCurrentProjectName } from "./projects";
+import { getAllProjects, getCurrentProjectName } from "./projects";
 import {
   Build,
   BuildRestClient,
@@ -10,14 +10,25 @@ import {
 import { PipelineOverview } from "../models/pipeline-overview";
 
 export async function getPipelineOverview(
+  loadAllProjects: boolean,
   showAsPercentage: boolean
 ): Promise<PipelineOverview[]> {
-  const projectName = await getCurrentProjectName();
+  const allProjects = loadAllProjects
+    ? await getAllProjects()
+    : [await getCurrentProjectName()];
+  const stats: PipelineOverview[] = [];
 
-  if (projectName === undefined) {
-    return [];
+  for (const project of allProjects) {
+    stats.push(...(await getPipelinesPerProject(project, showAsPercentage)));
   }
 
+  return stats.sort((a, b) => b.stats.runs - a.stats.runs);
+}
+
+async function getPipelinesPerProject(
+  projectName: string,
+  showAsPercentage: boolean
+): Promise<PipelineOverview[]> {
   const pipelines = await getClient(PipelinesRestClient).listPipelines(
     projectName
   );
@@ -50,6 +61,7 @@ export async function getPipelineOverview(
     }
 
     stats.push({
+      projectName: projectName,
       name: pipeline,
       stats: {
         runs: builds.length,
@@ -65,6 +77,7 @@ export async function getPipelineOverview(
     pipelines.forEach((pipeline) => {
       if (!stats.some((run) => run.name === pipeline.name)) {
         stats.push({
+          projectName: projectName,
           name: pipeline.name,
           stats: {
             runs: 0,
@@ -78,17 +91,40 @@ export async function getPipelineOverview(
     });
   }
 
-  return stats.sort((a, b) => b.stats.runs - a.stats.runs);
+  return stats;
 }
 
 async function getBuildsGroupedByPipeline(
   projectName: string,
   pipelines: Pipeline[]
 ): Promise<Map<string, Build[]>> {
-  const builds = await getClient(BuildRestClient).getBuilds(
+  const buildsClient = getClient(BuildRestClient);
+  const builds = await buildsClient.getBuilds(
     projectName,
     pipelines.map((p) => p.id)
   );
+
+  let continuationToken = builds.continuationToken;
+  while (continuationToken !== null) {
+    const continuationBuilds = await buildsClient.getBuilds(
+      projectName,
+      pipelines.map((p) => p.id),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      builds.continuationToken ?? ""
+    );
+    continuationToken = continuationBuilds.continuationToken;
+    builds.push(...continuationBuilds);
+  }
   const map = new Map();
 
   builds
