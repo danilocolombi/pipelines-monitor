@@ -53,7 +53,7 @@ class PipelinesWidgetConfig
     return (
       <div className="content">
         <div className="flex-column">
-          <label className="select-label">Render Data From:</label>
+          <label className="select-label">Scope</label>
           <div className="flex-column">
             <Dropdown
               ariaLabel="Basic"

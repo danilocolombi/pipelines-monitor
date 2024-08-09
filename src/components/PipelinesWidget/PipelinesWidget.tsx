@@ -159,7 +159,7 @@ class PipelinesWidget
     ];
 
     if (showProjectName) {
-      columns.push(addPipelineTableColumn("projectName", "Project", -30, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }));
+      columns.push(addPipelineTableColumn("projectName", "Project", -25, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }));
       sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.projectName.localeCompare(item2.projectName));
     }
 
@@ -288,7 +288,11 @@ class PipelinesWidget
       this.setState({ title: widgetSettings.name, pipelines, ...deserialized });
 
     } catch (e) {
-      console.log("Error: ", e);
+      this.setState({
+        title: "Pipelines Monitor",
+        error: true,
+        errorMessage: "No pipelines found"
+      })
     }
   }
 

@@ -98,10 +98,33 @@ async function getBuildsGroupedByPipeline(
   projectName: string,
   pipelines: Pipeline[]
 ): Promise<Map<string, Build[]>> {
-  const builds = await getClient(BuildRestClient).getBuilds(
+  const buildsClient = getClient(BuildRestClient);
+  const builds = await buildsClient.getBuilds(
     projectName,
     pipelines.map((p) => p.id)
   );
+
+  let continuationToken = builds.continuationToken;
+  while (continuationToken !== null) {
+    const continuationBuilds = await buildsClient.getBuilds(
+      projectName,
+      pipelines.map((p) => p.id),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      builds.continuationToken ?? ""
+    );
+    continuationToken = continuationBuilds.continuationToken;
+    builds.push(...continuationBuilds);
+  }
   const map = new Map();
 
   builds
