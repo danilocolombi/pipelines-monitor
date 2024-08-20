@@ -24,7 +24,8 @@ interface IPipelinesWidgetState {
   showCanceled: boolean;
   error: boolean;
   errorMessage: string;
-  renderAllProjects: boolean;
+  renderMultipleProjects: boolean;
+  selectedProjects: string[];
 }
 
 export interface IPipelineTableItem extends ISimpleTableCell {
@@ -57,6 +58,7 @@ class PipelinesWidget
     }
 
     const { title, showProjectName, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showCanceled } = this.state;
+
     const tableItems = pipelines.map(({ name, projectName, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
       return {
         name,
@@ -254,46 +256,39 @@ class PipelinesWidget
     widgetSettings: Dashboard.WidgetSettings
   ) {
     try {
-      const deserialized: IPipelineWidgetSettings | null = JSON.parse(
+      const deserialized: IPipelineWidgetSettings = JSON.parse(
         widgetSettings.customSettings.data
-      );
+      ) ?? this.getDefaultSettings();
 
-      const pipelines = await getPipelineOverview(deserialized?.renderAllProjects ?? false, deserialized?.showAsPercentage ?? false);
+      const pipelines = await getPipelineOverview(deserialized.selectedProjects, deserialized.showAsPercentage, deserialized.renderMultipleProjects);
 
-      if (pipelines == null || pipelines.length === 0) {
-        this.setState({
-          title: "Pipelines Monitor",
-          error: true,
-          errorMessage: "No pipelines found"
-        })
-        return;
-      }
-
-      if (!deserialized) {
-        this.setState({
-          title: "Pipelines Monitor",
-          pipelines: pipelines,
-          showProjectName: false,
-          showAsPercentage: false,
-          showRuns: true,
-          showSucceeded: true,
-          showFailed: true,
-          showCanceled: true,
-          showAverage: true,
-          renderAllProjects: false,
-        })
-        return;
-      }
-
-      this.setState({ title: widgetSettings.name, pipelines, ...deserialized });
+      this.setState({ ...deserialized, title: widgetSettings.name, pipelines });
 
     } catch (e) {
-      this.setState({
-        title: "Pipelines Monitor",
-        error: true,
-        errorMessage: "No pipelines found"
-      })
+      this.setErrorState("Error loading pipelines");
     }
+  }
+
+  private setErrorState(errorMessage: string) {
+    this.setState({
+      title: "Pipelines Monitor",
+      error: true,
+      errorMessage: errorMessage
+    })
+  }
+
+  private getDefaultSettings(): IPipelineWidgetSettings {
+    return {
+      showProjectName: false,
+      showAsPercentage: false,
+      showRuns: true,
+      showSucceeded: true,
+      showFailed: true,
+      showCanceled: true,
+      showAverage: true,
+      renderMultipleProjects: false,
+      selectedProjects: [],
+    };
   }
 
 }

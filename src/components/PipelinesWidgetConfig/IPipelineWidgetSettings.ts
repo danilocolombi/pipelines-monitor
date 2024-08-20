@@ -6,5 +6,6 @@ export interface IPipelineWidgetSettings {
   showAverage: boolean;
   showCanceled: boolean;
   showAsPercentage: boolean;
-  renderAllProjects: boolean;
+  selectedProjects: string[];
+  renderMultipleProjects: boolean;
 }

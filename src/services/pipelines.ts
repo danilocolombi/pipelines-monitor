@@ -1,27 +1,29 @@
 import { getClient } from "azure-devops-extension-api";
 import { PipelinesRestClient } from "azure-devops-extension-api/Pipelines/PipelinesClient";
 import { Pipeline } from "azure-devops-extension-api/Pipelines/Pipelines";
-import { getAllProjects, getCurrentProjectName } from "./projects";
 import {
   Build,
   BuildRestClient,
   BuildResult,
 } from "azure-devops-extension-api/Build";
 import { PipelineOverview } from "../models/pipeline-overview";
+import { getCurrentProjectName } from "./projects";
 
 export async function getPipelineOverview(
-  loadAllProjects: boolean,
-  showAsPercentage: boolean
+  projects: string[],
+  showAsPercentage: boolean,
+  renderMultipleProjects: boolean
 ): Promise<PipelineOverview[]> {
-  const allProjects = loadAllProjects
-    ? await getAllProjects()
-    : [await getCurrentProjectName()];
   const stats: PipelineOverview[] = [];
 
-  for (const project of allProjects) {
+  if (renderMultipleProjects) {
+    for (const project of projects) {
+      stats.push(...(await getPipelinesPerProject(project, showAsPercentage)));
+    }
+  } else {
+    const project = await getCurrentProjectName();
     stats.push(...(await getPipelinesPerProject(project, showAsPercentage)));
   }
-
   return stats.sort((a, b) => b.stats.runs - a.stats.runs);
 }
 
@@ -104,27 +106,6 @@ async function getBuildsGroupedByPipeline(
     pipelines.map((p) => p.id)
   );
 
-  let continuationToken = builds.continuationToken;
-  while (continuationToken !== null) {
-    const continuationBuilds = await buildsClient.getBuilds(
-      projectName,
-      pipelines.map((p) => p.id),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      builds.continuationToken ?? ""
-    );
-    continuationToken = continuationBuilds.continuationToken;
-    builds.push(...continuationBuilds);
-  }
   const map = new Map();
 
   builds

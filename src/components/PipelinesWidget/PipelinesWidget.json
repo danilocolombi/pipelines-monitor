@@ -9,7 +9,7 @@
       ],
       "properties": {
         "name": "Pipelines Monitor",
-        "description": "Shows pipelines stats of team project",
+        "description": "Shows pipelines stats and performance metrics",
         "catalogIconUrl": "static/logo.png",
         "uri": "dist/PipelinesWidget/PipelinesWidget.html",
         "isNameConfigurable": true,
