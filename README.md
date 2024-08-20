@@ -10,6 +10,7 @@
   - [Pipelines Monitor Features](#pipelines-monitor-features)
   - [Install](#install)
   - [Use](#use)
+  - [Known Limitations](#known-limitations)
 
 ## Pipelines Monitor Features
 
@@ -19,6 +20,7 @@
 - **Performance Metrics**: Calculate and review the average time taken for the completion of pipeline runs.
 
 ## Install
+
 The extension can be installed from [Azure DevOps Marketplace](https://marketplace.visualstudio.com/items?itemName=danilocolombi.pipelines-monitor).
 
 ## Use
@@ -52,3 +54,8 @@ You can choose the configure option to customize the widget settings.
 Select the settings you want to use.
 
 ![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/widget-settings.png?raw=true)
+
+
+## Known Limitations
+
+You can only select pipelines from 10 projects at a time due to performance reasons.
