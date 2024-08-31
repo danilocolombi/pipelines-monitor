@@ -14,10 +14,15 @@
 
 ## Pipelines Monitor Features
 
-- **Comprehensive Pipeline Inventory**: Gain a comprehensive view of all pipelines within your organization.
-- **Pipeline Execution Tracking**: Monitor the total number of executions for each pipeline.
-- **Outcome Categorization**: Classify and count the pipeline runs by their outcomes — successful, failed, or canceled.
-- **Performance Metrics**: Calculate and review the average time taken for the completion of pipeline runs.
+This extension provides detailed insights into your pipelines, including:
+
+**Total Pipelines**: View the complete list of all pipelines in your projects to get a comprehensive overview of your inventory.
+
+**Run Statistics**: Track the total number of runs for each pipeline to find out which pipelines are executed most frequently.
+
+**Outcome Breakdown**: See the number of successful, failed, and canceled runs in order to identify potential issues.
+
+**Average Duration**: Monitor the average time taken for pipeline runs, and identify potential points of improvement.
 
 ## Install
 
@@ -59,3 +64,4 @@ Select the settings you want to use.
 ## Known Limitations
 
 You can only select pipelines from 10 projects at a time due to performance reasons.
+It only works with YAML pipelines.
