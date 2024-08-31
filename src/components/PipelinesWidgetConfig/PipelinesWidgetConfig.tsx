@@ -8,7 +8,7 @@ import FormToggle from "../FormToggle/FormToggle";
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 import { DropdownMultiSelection, DropdownSelection } from "azure-devops-ui/Utilities/DropdownSelection";
-import { getAllProjects, getCurrentProjectName } from "../../services/projects";
+import { getAllProjects } from "../../services/projects";
 import { Observer } from "azure-devops-ui/Observer";
 import { Icon } from "azure-devops-ui/Icon";
 
