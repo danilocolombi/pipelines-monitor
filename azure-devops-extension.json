@@ -2,12 +2,12 @@
   "manifestVersion": 1,
   "id": "pipelines-monitor",
   "publisher": "danilocolombi",
-  "version": "0.3.2",
+  "version": "0.3.4",
   "name": "Pipelines Monitor",
   "description": "A Azure DevOps extension designed to deliver insightful analytics on pipeline executions across your organization.",
   "public": true,
   "categories": ["Azure Pipelines"],
-  "tags": ["Pipelines", "Dashboards"],
+  "tags": ["Pipelines", "Dashboards", "Widgets", "Monitor"],
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
