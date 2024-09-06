@@ -11,6 +11,9 @@
   - [Install](#install)
   - [Use](#use)
   - [Known Limitations](#known-limitations)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Related Extensions](#related-extensions)
 
 ## Pipelines Monitor Features
 
@@ -60,8 +63,25 @@ Select the settings you want to use.
 
 ![](https://github.com/danilocolombi/pipelines-monitor/blob/main/documentation/images/widget-settings.png?raw=true)
 
-
 ## Known Limitations
 
-You can only select pipelines from 10 projects at a time due to performance reasons.
-It only works with YAML pipelines.
+1. You can select pipelines from up to 10 projects at a time due to performance reasons.
+
+2. This feature works only with YAML pipelines.
+
+3. Statistics are based on the last 1,000 runs for each project.
+
+## Contributing
+
+This project welcomes contributions and suggestions.
+
+## License
+
+this project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Related Extensions
+
+I'm also author of the following extensions, which you might find useful:
+- [Language Breakdown Widget](https://marketplace.visualstudio.com/items?itemName=danilocolombi.language-breakdown-widget)
+
+- [Deployment Monitor Widget (preview)](https://marketplace.visualstudio.com/items?itemName=danilocolombi.deployment-monitor)
