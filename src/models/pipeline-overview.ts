@@ -1,5 +1,8 @@
 export interface PipelineOverview {
-  name: string;
+  pipeline: {
+    name: string;
+    url: string;
+  }
   projectName: string,
   stats: {
     runs: number;

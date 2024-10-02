@@ -11,6 +11,7 @@ import { Observer } from "azure-devops-ui/Observer";
 import { getPipelineOverview } from "../../services/pipelines";
 import { IPipelineWidgetSettings } from "../PipelinesWidgetConfig/IPipelineWidgetSettings";
 import { PipelineOverview } from "../../models/pipeline-overview";
+import { Link } from "azure-devops-ui/Link";
 
 interface IPipelinesWidgetState {
   title: string;
@@ -30,6 +31,7 @@ interface IPipelinesWidgetState {
 
 export interface IPipelineTableItem extends ISimpleTableCell {
   name: string;
+  url: string;
   projectName: string;
   runs: number;
   succeeded: number;
@@ -59,9 +61,10 @@ class PipelinesWidget
 
     const { title, showProjectName, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showCanceled } = this.state;
 
-    const tableItems = pipelines.map(({ name, projectName, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
+    const tableItems = pipelines.map(({ pipeline: { name, url }, projectName, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
       return {
         name,
+        url,
         projectName,
         runs,
         succeeded,
@@ -103,6 +106,32 @@ class PipelinesWidget
       else {
         return `${minutes}m ${seconds}s`;
       }
+    }
+
+    function renderPipelineNameCell(
+      rowIndex: number,
+      columnIndex: number,
+      tableColumn: ITableColumn<IPipelineTableItem>,
+      tableItem: IPipelineTableItem
+    ): JSX.Element {
+      const item = tableItem;
+      return (
+        <SimpleTableCell
+          columnIndex={columnIndex}
+          tableColumn={tableColumn}
+          key={"col-" + columnIndex}
+        >
+          <span className="flex-row wrap-text">
+            <Link
+              className="bolt-table-link bolt-link no-underline-link text-ellipsis small-margin bolt-link"
+              href={item.url}
+              target="_blank"
+            >
+              {item.name}
+            </Link>
+          </span>
+        </SimpleTableCell>
+      );
     }
 
     const renderAverageColumn = (
@@ -153,7 +182,7 @@ class PipelinesWidget
     }
 
     let columns: ITableColumn<IPipelineTableItem>[] = [
-      addPipelineTableColumn("name", "Name", -35, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }),
+      addPipelineTableColumn("name", "Name", -35, renderPipelineNameCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }),
     ];
 
     let sortFunctions = [
