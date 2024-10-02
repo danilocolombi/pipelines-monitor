@@ -34,53 +34,57 @@ async function getPipelinesPerProject(
   const pipelines = await getClient(PipelinesRestClient).listPipelines(
     projectName
   );
-  const buildsGroupByPipeline = await getBuildsGroupedByPipeline(
-    projectName,
-    pipelines
-  );
+  const map = await getBuildsGroupedByPipeline(projectName, pipelines);
   const stats: PipelineOverview[] = [];
 
-  buildsGroupByPipeline.forEach((builds, pipeline) => {
+  map.forEach((value, key) => {
     let succeeded = 0;
     let failed = 0;
     let canceled = 0;
     let avgDuration = 0;
-    builds.forEach((run) => {
-      avgDuration += run.finishTime.valueOf() - run.startTime.valueOf();
-      if (run.result === BuildResult.Succeeded) {
+    const count = value.builds.length;
+    value.builds.forEach((build) => {
+      avgDuration += build.finishTime.valueOf() - build.startTime.valueOf();
+      if (build.result === BuildResult.Succeeded) {
         succeeded += 1;
-      } else if (run.result === BuildResult.Failed) {
+      } else if (build.result === BuildResult.Failed) {
         failed += 1;
-      } else if (run.result === BuildResult.Canceled) {
+      } else if (build.result === BuildResult.Canceled) {
         canceled += 1;
       }
     });
 
     if (showAsPercentage) {
-      succeeded = convertValueToPercent(succeeded, builds.length);
-      failed = convertValueToPercent(failed, builds.length);
-      canceled = convertValueToPercent(canceled, builds.length);
+      succeeded = convertValueToPercent(succeeded, count);
+      failed = convertValueToPercent(failed, count);
+      canceled = convertValueToPercent(canceled, count);
     }
 
     stats.push({
       projectName: projectName,
-      name: pipeline,
+      pipeline: {
+        name: key,
+        url: value.pipelineUrl,
+      },
       stats: {
-        runs: builds.length,
+        runs: count,
         succeeded,
         failed,
         canceled,
-        avgDuration: avgDuration / builds.length,
+        avgDuration: avgDuration / count,
       },
     });
   });
 
   if (pipelines.length !== stats.length) {
     pipelines.forEach((pipeline) => {
-      if (!stats.some((run) => run.name === pipeline.name)) {
+      if (!stats.some((run) => run.pipeline.name === pipeline.name)) {
         stats.push({
           projectName: projectName,
-          name: pipeline.name,
+          pipeline: {
+            name: pipeline.name,
+            url: pipeline.url,
+          },
           stats: {
             runs: 0,
             succeeded: 0,
@@ -99,14 +103,15 @@ async function getPipelinesPerProject(
 async function getBuildsGroupedByPipeline(
   projectName: string,
   pipelines: Pipeline[]
-): Promise<Map<string, Build[]>> {
+): Promise<Map<string, { builds: Build[]; pipelineUrl: string }>> {
   const buildsClient = getClient(BuildRestClient);
+
   const builds = await buildsClient.getBuilds(
     projectName,
     pipelines.map((p) => p.id)
   );
 
-  const map = new Map();
+  const map = new Map<string, { builds: Build[]; pipelineUrl: string }>();
 
   builds
     .filter((run) => run.finishTime !== undefined)
@@ -114,9 +119,10 @@ async function getBuildsGroupedByPipeline(
       const key = build.definition.name;
       const currentValue = map.get(key);
       if (!currentValue) {
-        map.set(key, [build]);
+        const url = pipelines.find((p) => p.id === build.definition.id)?._links.web.href;
+        map.set(key, { builds: [build], pipelineUrl: url });
       } else {
-        currentValue.push(build);
+        currentValue.builds.push(build);
       }
     });
 
