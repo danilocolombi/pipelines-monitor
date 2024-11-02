@@ -12,6 +12,10 @@ import { getPipelineOverview } from "../../services/pipelines";
 import { IPipelineWidgetSettings } from "../PipelinesWidgetConfig/IPipelineWidgetSettings";
 import { PipelineOverview } from "../../models/pipeline-overview";
 import { Link } from "azure-devops-ui/Link";
+import { FilterBar } from "azure-devops-ui/FilterBar";
+import { Filter, FILTER_CHANGE_EVENT, IFilterState } from "azure-devops-ui/Utilities/Filter";
+import { KeywordFilterBarItem } from "azure-devops-ui/TextFilterBarItem";
+
 
 interface IPipelinesWidgetState {
   title: string;
@@ -40,16 +44,71 @@ export interface IPipelineTableItem extends ISimpleTableCell {
   avgDuration: number;
 }
 
+interface FilterValue extends IFilterState {
+  searchTerm: {
+    value: string;
+  };
+}
+
 class PipelinesWidget
   extends React.Component<{}, IPipelinesWidgetState>
   implements Dashboard.IConfigurableWidget {
+  private filter: Filter;
+  private allTableItems: IPipelineTableItem[] = [];
+  private filteredTableItems: IPipelineTableItem[] = [];
+  private itemProvider = new ObservableValue<ArrayItemProvider<IPipelineTableItem>>(
+    new ArrayItemProvider([])
+  );
+  private columns: ITableColumn<IPipelineTableItem>[] = [];
+  private sortFunctions: ((item1: IPipelineTableItem, item2: IPipelineTableItem) => number)[] = [];
+  private sortingBehavior = this.updateSortingBehavior();
+
+  constructor(props: {}) {
+    super(props);
+
+    this.filter = new Filter();
+    this.filter.subscribe(() => {
+      this.applyFilter();
+    }, FILTER_CHANGE_EVENT);
+  }
+
   componentDidMount(): void {
     SDK.init().then(() => {
       SDK.register("pipelines-widget", this);
     });
   }
 
+  applyFilter() {
+    const filterValue = this.filter.getState() as FilterValue;
+    if (filterValue?.searchTerm === undefined) {
+      this.filteredTableItems = this.allTableItems;
+    }
+    else {
+      this.filteredTableItems = this.allTableItems.filter(item => item.name.toLowerCase().includes(filterValue.searchTerm.value.toLowerCase()));
+    }
+
+    this.itemProvider.value = new ArrayItemProvider(this.filteredTableItems);
+    this.sortingBehavior = this.updateSortingBehavior();
+  }
+
+  updateSortingBehavior(): ColumnSorting<IPipelineTableItem> {
+    return new ColumnSorting<IPipelineTableItem>(
+      (columnIndex: number, proposedSortOrder: SortOrder) => {
+        this.itemProvider.value = new ArrayItemProvider(
+          sortItems(
+            columnIndex,
+            proposedSortOrder,
+            this.sortFunctions,
+            this.columns,
+            this.filteredTableItems
+          )
+        );
+      }
+    );
+  }
+
   render(): JSX.Element {
+
 
     if (!this.state) {
       return <div></div>;
@@ -61,7 +120,7 @@ class PipelinesWidget
 
     const { title, showProjectName, showAsPercentage, pipelines, showRuns, showSucceeded, showFailed, showAverage, showCanceled } = this.state;
 
-    const tableItems = pipelines.map(({ pipeline: { name, url }, projectName, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
+    this.allTableItems = pipelines.map(({ pipeline: { name, url }, projectName, stats: { runs, succeeded, failed, canceled, avgDuration } }) => {
       return {
         name,
         url,
@@ -74,8 +133,10 @@ class PipelinesWidget
       }
     });
 
-    const itemProvider = new ObservableValue<ArrayItemProvider<IPipelineTableItem>>(
-      new ArrayItemProvider(tableItems)
+    this.filteredTableItems = this.allTableItems;
+
+    this.itemProvider = new ObservableValue<ArrayItemProvider<IPipelineTableItem>>(
+      new ArrayItemProvider(this.filteredTableItems)
     );
 
     const renderNumericColumn = (
@@ -181,76 +242,70 @@ class PipelinesWidget
       };
     }
 
-    let columns: ITableColumn<IPipelineTableItem>[] = [
-      addPipelineTableColumn("name", "Name", -35, renderPipelineNameCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }),
-    ];
+    this.columns = [];
+    this.sortFunctions = [];
 
-    let sortFunctions = [
-      (item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.name.localeCompare(item2.name),
-    ];
+    this.columns.push(addPipelineTableColumn("name", "Name", -35, renderPipelineNameCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }));
+    this.sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.name.localeCompare(item2.name));
 
     if (showProjectName) {
-      columns.push(addPipelineTableColumn("projectName", "Project", -25, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }));
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.projectName.localeCompare(item2.projectName));
+      this.columns.push(addPipelineTableColumn("projectName", "Project", -25, renderSimpleCell, { ariaLabelAscending: "Sorted A to Z", ariaLabelDescending: "Sorted Z to A", }));
+      this.sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.projectName.localeCompare(item2.projectName));
     }
 
     if (showRuns) {
-      columns.push(addPipelineTableColumn("runs", "Runs", -10, renderSimpleCell));
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.runs - item2.runs);
+      this.columns.push(addPipelineTableColumn("runs", "Runs", -10, renderSimpleCell));
+      this.sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.runs - item2.runs);
     }
 
     if (showSucceeded) {
-      columns.push(addPipelineTableColumn("succeeded", "Succeeded", -14));
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.succeeded - item2.succeeded);
+      this.columns.push(addPipelineTableColumn("succeeded", "Succeeded", -14));
+      this.sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.succeeded - item2.succeeded);
     }
 
     if (showFailed) {
-      columns.push(addPipelineTableColumn("failed", "Failed"));
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.failed - item2.failed);
+      this.columns.push(addPipelineTableColumn("failed", "Failed"));
+      this.sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.failed - item2.failed);
     }
 
     if (showCanceled) {
-      columns.push(addPipelineTableColumn("canceled", "Canceled"));
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.canceled - item2.canceled);
+      this.columns.push(addPipelineTableColumn("canceled", "Canceled"));
+      this.sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.canceled - item2.canceled);
     }
 
     if (showAverage) {
-      columns.push(addPipelineTableColumn("avgDuration", "Avg Duration", -15, renderAverageColumn));
-      sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.avgDuration - item2.avgDuration);
+      this.columns.push(addPipelineTableColumn("avgDuration", "Avg Duration", -15, renderAverageColumn));
+      this.sortFunctions.push((item1: IPipelineTableItem, item2: IPipelineTableItem): number => item1.avgDuration - item2.avgDuration);
     }
-
-    const sortingBehavior = new ColumnSorting<IPipelineTableItem>(
-      (columnIndex: number, proposedSortOrder: SortOrder) => {
-        itemProvider.value = new ArrayItemProvider(
-          sortItems(
-            columnIndex,
-            proposedSortOrder,
-            sortFunctions,
-            columns,
-            tableItems
-          )
-        );
-      }
-    );
 
     const renderedTitle = `${title} (${pipelines.length ?? 0})`;
 
     return (
       <Card className="flex-grow bolt-table-card" titleProps={{ text: renderedTitle, ariaLevel: 3 }}>
-        <Observer itemProvider={itemProvider}>
-          {(observableProps: { itemProvider: ArrayItemProvider<IPipelineTableItem> }) => (
-            <Table<IPipelineTableItem>
-              ariaLabel="Pipelines Table"
-              columns={columns}
-              behaviors={[sortingBehavior]}
-              itemProvider={observableProps.itemProvider}
-              scrollable={true}
-              role="table"
-              pageSize={100}
-              containerClassName="h-scroll-auto"
-            />
-          )}
-        </Observer>
+        <div className="flex-grow">
+          <div className="flex-grow">
+            <FilterBar filter={this.filter}>
+              <KeywordFilterBarItem filterItemKey="searchTerm" placeholder="Filter by pipeline name" />
+            </FilterBar>
+          </div>
+          <div className="flex-grow">
+
+            <Observer itemProvider={this.itemProvider}>
+              {(observableProps: { itemProvider: ArrayItemProvider<IPipelineTableItem> }) => (
+                <Table<IPipelineTableItem>
+                  ariaLabel="Pipelines Table"
+                  columns={this.columns}
+                  behaviors={[this.sortingBehavior]}
+                  itemProvider={observableProps.itemProvider}
+                  scrollable={true}
+                  role="table"
+                  pageSize={100}
+                  containerClassName="h-scroll-auto"
+                />
+              )}
+            </Observer>
+          </div>
+        </div>
       </Card>
     );
   }
