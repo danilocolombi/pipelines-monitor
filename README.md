@@ -82,6 +82,6 @@ this project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Related Extensions
 
 I'm also author of the following extensions, which you might find useful:
-- [Language Breakdown Widget](https://marketplace.visualstudio.com/items?itemName=danilocolombi.language-breakdown-widget)
+- [Repository Insights](https://marketplace.visualstudio.com/items?itemName=danilocolombi.repository-insights)
 
-- [Deployment Monitor Widget (preview)](https://marketplace.visualstudio.com/items?itemName=danilocolombi.deployment-monitor)
+- [Deployment Monitor Widget](https://marketplace.visualstudio.com/items?itemName=danilocolombi.deployment-monitor)

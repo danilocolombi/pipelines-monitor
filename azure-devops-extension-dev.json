@@ -14,7 +14,7 @@
     }
   ],
   "icons": {
-    "default": "logo.png"
+    "default": "static/logo.png"
   },
   "content": {
     "details": {
